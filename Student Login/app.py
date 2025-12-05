@@ -1,21 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template,request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 from collections import defaultdict
-app= Flask(__name__)
-CORS(app)
+
+
+app = Flask(__name__)
+CORS(app) # Initialize CORS once.
+
+
 MOCK_STUDENTS = {
     "S1001": {"name": "John Doe", "stream": "BSc Computer Science", "semester": "Sem 3", "password": "pass"},
     "S1002": {"name": "Jane Smith", "stream": "BSc Computer Science", "semester": "Sem 3", "password": "pass"},
 }
 
-# Subject Data (Used to list subjects for a semester/stream)
 MOCK_SUBJECTS = {
     "Sem 3": ["DBMS", "OS", "DSA", "Math"],
 }
 
-# Attendance Data (The source of truth: Records for every class held)
-# Structure: {class_id: {subject: str, date: datetime, attended_students: [str]}}
 MOCK_CLASSES = {
     # DBMS Classes in January
     "C101": {"subject": "DBMS", "date": datetime(2025, 1, 5), "attended": ["S1001", "S1002"]},
@@ -35,9 +36,18 @@ MOCK_CLASSES = {
 }
 
 
+@app.route('/')
+def final():
+    # This requires 'render_template' to be imported
+    return render_template('final.html', title='Student Attendance Portal')
+@app.route('/')
+def graph():
+    # This requires 'render_template' to be imported
+    return render_template('graph.html', title='Student Attendance graph')
+
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    
     data = request.get_json()
     student_id = data.get('student_id')
     password = data.get('password')
@@ -45,7 +55,6 @@ def login():
     student = MOCK_STUDENTS.get(student_id)
 
     if student and student['password'] == password:
-       
         return jsonify({
             "message": "Login successful", 
             "token": f"mock-jwt-for-{student_id}",
@@ -57,7 +66,6 @@ def login():
 
 @app.route('/api/student/profile/<student_id>', methods=['GET'])
 def get_student_profile(student_id):
-    
     student = MOCK_STUDENTS.get(student_id)
     if student:
         return jsonify({
@@ -69,7 +77,6 @@ def get_student_profile(student_id):
 
 @app.route('/api/attendance/month-report', methods=['POST'])
 def get_month_report():
-    
     data = request.get_json()
     student_id = data.get('student_id')
     month = data.get('month')
@@ -91,7 +98,6 @@ def get_month_report():
             if student_id in class_info['attended']:
                 attendance_data[subject]['attended'] += 1
 
-   
     report = []
     for subject, counts in attendance_data.items():
         attended = counts['attended']
@@ -111,7 +117,6 @@ def get_month_report():
 
 @app.route('/api/attendance/semester-report', methods=['POST'])
 def get_semester_report():
-   
     data = request.get_json()
     student_id = data.get('student_id')
     semester = data.get('semester')
@@ -121,7 +126,8 @@ def get_semester_report():
     
     attendance_data = defaultdict(lambda: {'attended': 0, 'total': 0})
 
-
+    
+    
     for class_id, class_info in MOCK_CLASSES.items():
         subject = class_info['subject']
         
@@ -146,7 +152,6 @@ def get_semester_report():
 
 @app.route('/api/attendance/defaulter-status', methods=['POST'])
 def get_defaulter_status():
-    
     data = request.get_json()
     student_id = data.get('student_id')
     subject_code = data.get('subject')
@@ -173,3 +178,7 @@ def get_defaulter_status():
         "is_defaulter": is_defaulter,
         "threshold": ATTENDANCE_THRESHOLD
     }), 200
+
+if __name__ == '_main_':
+    # You are running on the default port 5000
+    app.run(debug=True)
