@@ -226,25 +226,33 @@ function renderReport(){
   const subject = document.getElementById("subject-select").value;
   const container = document.getElementById("attendance-section");
   container.innerHTML = '';
-  const dateInput = document.getElementById("lecture-time").value;
-  if (!dateInput) {
-    alert("Please select Lecture Date");
-    return;
+
+  // Only require lecture date if marking attendance
+  if(report === 'attendance'){
+    const dateInput = document.getElementById("lecture-time").value;
+    if (!dateInput) {
+      alert("Please select Lecture Date");
+      return;
+    }
   }
 
+  const dateInput = document.getElementById("lecture-time").value;
   const selectedDate = new Date(dateInput);
   const month = selectedDate.getMonth() + 1; // 1–12
   const selectedYear = selectedDate.getFullYear();
    if (report === 'month') {
 
   fetch("/api/monthly_student_report", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      month: month,
-      year: selectedYear
-    })
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    month: month,
+    year: selectedYear,
+    subject: subject,   // <-- Add this
+    stream: stream      // <-- Add this
   })
+})
+
   .then(res => res.json())
   .then(data => {
     container.innerHTML = `<strong>Monthly Report: ${subject} - ${year} - ${stream}</strong>`;
@@ -270,16 +278,16 @@ function renderReport(){
     const tbody = document.createElement("tbody");
 
     data.forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${r.student_name}</td>
-          <td>${r.total_lectures}</td>
-          <td>${r.attended}</td>
-          <td>${r.missed}</td>
-          <td>${r.percentage}%</td>
-        </tr>
-      `;
-    });
+  tbody.innerHTML += `
+    <tr>
+      <td>${r.student || r.student_name}</td>           <!-- changed -->
+      <td>${r.total_lectures}</td>
+      <td>${r.present || r.attended}</td>             <!-- changed -->
+      <td>${r.absent || r.missed}</td>               <!-- changed -->
+      <td>${r.percentage || r.perc}%</td>            <!-- changed -->
+    </tr>
+  `;
+});
 
     table.appendChild(tbody);
     container.appendChild(table);

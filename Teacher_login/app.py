@@ -185,39 +185,41 @@ def save_attendance():
 # Database connection
 @app.route('/api/monthly_student_report', methods=['POST'])
 def monthly_student_report():
-    data = request.get_json()
+    try:
+        data = request.json
+        month = int(data['month'])
+        year = int(data['year'])
+        subject = data.get('subject')
+        stream = data.get('stream')
 
-    month = data.get('month')
-    year = data.get('year')
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    if not month or not year:
-        return jsonify({"error": "month and year are required"}), 400
-
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-
-    query = """
-        SELECT s.name AS student_name,
-               COUNT(DISTINCT a.lecture_key) AS total_lectures,
-               SUM(CASE WHEN a.status = 'P' THEN 1 ELSE 0 END) AS attended,
-               SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) AS missed
+        query = """
+        SELECT 
+            s.name AS student,
+            COUNT(*) AS total_lectures,
+            SUM(a.status='P') AS present,
+            SUM(a.status='A') AS absent,
+            ROUND(SUM(a.status='P') / COUNT(*) * 100, 2) AS percentage
         FROM attendance a
         JOIN students s ON s.id = a.student_id
         WHERE MONTH(a.date) = %s
           AND YEAR(a.date) = %s
-        GROUP BY a.student_id, s.name
-    """
+          AND s.stream = %s
+          AND a.lecture_key LIKE %s
+        GROUP BY s.id, s.name
+        """
 
-    cur.execute(query, (month, year))
-    rows = cur.fetchall()
+        lecture_key_pattern = f"{subject}%{stream}%"
+        cursor.execute(query, (month, year, stream, lecture_key_pattern))
+        results = cursor.fetchall()
 
-    for r in rows:
-        r["percentage"] = round(
-            (r["attended"] / r["total_lectures"]) * 100, 1
-        ) if r["total_lectures"] else 0
+        return jsonify(results)
 
-    cur.close()
-    conn.close()
-    return jsonify(rows)
+    except Exception as e:
+        print("Monthly report error:", e)
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(debug=True)
