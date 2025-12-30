@@ -21,6 +21,57 @@ body{margin:0; background: linear-gradient(180deg,var(--sky-100),#f8feff); color
 .app {max-width:980px; margin:0 auto;}
 .header {background: var(--white); padding:20px 22px; border-radius:12px; box-shadow: 0 8px 20px var(--card-shadow); display:flex; justify-content:space-between; align-items:center; gap:16px;}
 .brand {display:flex; gap:12px; align-items:center;}
+
+/* Defaulter range controls */
+.defaulter-controls{
+  display:flex;
+  gap:14px;
+  align-items:flex-end;
+  margin:12px 0 18px;
+  flex-wrap:wrap;
+}
+
+.defaulter-controls label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.defaulter-controls input[type="date"]{
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #dbeefe;
+  background:linear-gradient(180deg,#fff,#fbfeff);
+  font-size:14px;
+}
+
+.defaulter-controls button{
+  padding:8px 16px;
+  border-radius:8px;
+  border:none;
+  background:linear-gradient(135deg,var(--sky-500),var(--sky-300));
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 6px 14px rgba(102,194,255,0.25);
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.defaulter-controls button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(102,194,255,0.35);
+}
+
+/* Defaulter table highlight */
+.defaulter-row{
+  background:rgba(194,61,61,0.08);
+}
+
+.defaulter-row td{
+  color:#8b1e1e;
+  font-weight:600;
+}
+
+
 .logo {width:48px; height:48px; border-radius:10px; background:linear-gradient(135deg,var(--sky-500),var(--sky-300)); display:flex; align-items:center; justify-content:center; color:var(--white); font-weight:700; font-size:18px; box-shadow: 0 6px 14px rgba(0,0,0,0.06);}
 .title {font-size:18px; font-weight:700;}
 .subtitle {font-size:13px; color:var(--muted); margin-top:2px;}
@@ -96,6 +147,8 @@ body{background-color:#f5f7f4;  background-image: url("{{ url_for('static', file
         <label for="lecture-time">Lecture Date & Time:</label>
         <input type="datetime-local" id="lecture-time"/>
       </div>
+
+      
       <div>
         <label for="report-select">Report Type:</label>
         <select id="report-select">
@@ -193,6 +246,12 @@ function renderAttendance(){
       attendance: lectureAttendance
     };
 
+    if (!document.getElementById("lecture-time").value) {
+  alert("Please select Lecture Date & Time");
+  return;
+}
+
+
     fetch("/save_attendance", {  // instead of http://127.0.0.1:5000/save_attendance
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -218,6 +277,20 @@ function renderAttendance(){
   container.appendChild(saveBtn);
 
 }
+
+function inRange(key, fromDate, toDate) {
+
+  // Extract date using regex (YYYY-MM-DD)
+  const match = key.match(/\d{4}-\d{2}-\d{2}/);
+
+  if (!match) return false;
+
+  const lectureDate = new Date(match[0]);
+  lectureDate.setHours(0, 0, 0, 0);
+
+  return lectureDate >= fromDate && lectureDate <= toDate;
+}
+
 
 function renderReport(){
   const report = document.getElementById("report-select").value;
@@ -315,24 +388,91 @@ function renderReport(){
     table.appendChild(tbody);
     container.appendChild(table);
   }
+else if (report === 'defaulter') {
 
-  else if(report==='defaulter'){
-    container.innerHTML = `<strong>Defaulter List: ${subject} - ${year} - ${stream}</strong>`;
-    const table = document.createElement('table');
-    table.innerHTML = '<thead><tr><th>Student</th><th>Attendance %</th></tr></thead>';
-    const tbody = document.createElement('tbody');
-    students.forEach(s=>{
-      let keys = Object.keys(attendanceData).filter(k=>k.includes(`${subject}_${year}_${stream}`));
+  container.innerHTML = `
+    <strong>Defaulter List: ${subject} - ${year} - ${stream}</strong>
+
+    <div class="defaulter-controls">
+      <div>
+        <label>From Date</label>
+        <input type="date" id="def-from">
+      </div>
+
+      <div>
+        <label>To Date</label>
+        <input type="date" id="def-to">
+      </div>
+
+      <button id="applyDefaulter">Apply</button>
+    </div>
+  `;
+
+  const table = document.createElement('table');
+  table.innerHTML =
+    '<thead><tr><th>Student</th><th>Attendance %</th></tr></thead>';
+
+  const tbody = document.createElement('tbody');
+  table.appendChild(tbody);
+  container.appendChild(table);
+
+  function renderDefaulters() {
+    tbody.innerHTML = "";
+
+    const from = document.getElementById("def-from").value;
+    const to = document.getElementById("def-to").value;
+
+    let fromDate = null;
+    let toDate = null;
+
+    if (from && to) {
+      fromDate = new Date(from);
+      toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    students.forEach(s => {
+
+      let keys = Object.keys(attendanceData).filter(k =>
+        k.includes(`${subject}_${year}_${stream}`)
+      );
+
+      // ✅ Date range filter
+      if (fromDate && toDate) {
+        keys = keys.filter(k => inRange(k, fromDate, toDate));
+      }
+
       let totalLectures = keys.length;
-      let presentCount = keys.reduce((acc,k)=>acc + (attendanceData[k][s.id]==='present'?1:0),0);
-      let perc = totalLectures? Math.round((presentCount/totalLectures)*100) : 0;
-      if(perc<75){
-        tbody.innerHTML += `<tr class="defaulter-row"><td>${s.name}</td><td>${perc}%</td></tr>`;
+      let presentCount = keys.reduce(
+        (acc, k) => acc + (attendanceData[k][s.id] === 'present' ? 1 : 0),
+        0
+      );
+
+      let perc = totalLectures
+        ? Math.round((presentCount / totalLectures) * 100)
+        : 0;
+
+      // ✅ Name + % ALWAYS visible
+      if (perc < 75) {
+        tbody.innerHTML += `
+          <tr class="defaulter-row">
+            <td>${s.name}</td>
+            <td>${perc}%</td>
+          </tr>
+        `;
       }
     });
-    table.appendChild(tbody);
-    container.appendChild(table);
   }
+
+  // initial render
+  renderDefaulters();
+
+  // Apply button
+  document
+    .getElementById("applyDefaulter")
+    .addEventListener("click", renderDefaulters);
+}
+
 
   else{
     renderAttendance();
