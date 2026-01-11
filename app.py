@@ -229,7 +229,9 @@ def defaulter_report():
         from_date = data.get('from_date')
         to_date = data.get('to_date')
         threshold = int(data.get('threshold', 75))  # default 75%
-
+        year = data.get('year')         # <-- frontend se ye aayega
+        stream = data.get('stream')  
+        
         # Validate dates
         if not from_date or not to_date:
             return jsonify({"error": "From date and To date required"}), 400
@@ -238,24 +240,25 @@ def defaulter_report():
         cursor = conn.cursor(dictionary=True)
 
         
-        query = """
+        query = query = """
 SELECT
     s.id AS student_id,
     s.name AS student_name,
     COUNT(a.id) AS total_lectures,
     SUM(CASE WHEN a.status='P' THEN 1 ELSE 0 END) AS present_count,
     ROUND(
-        (SUM(CASE WHEN a.status='P' THEN 1 ELSE 0 END) / NULLIF(COUNT(a.id),0)) * 100, 2
+        (SUM(CASE WHEN a.status='P' THEN 1 ELSE 0 END) / COUNT(a.id)) * 100, 2
     ) AS percentage
 FROM students s
 LEFT JOIN attendance a ON s.id = a.student_id
     AND a.date BETWEEN %s AND %s
-WHERE s.stream = %s AND s.year = %s
+WHERE s.year = %s      -- <-- numeric year filter
+AND s.stream = %s      -- <-- stream filter
 GROUP BY s.id, s.name
 HAVING percentage < %s
 ORDER BY percentage ASC
 """
-        cursor.execute(query, (from_date, to_date, stream, year, threshold))
+        cursor.execute(query, (from_date, to_date, year, stream, threshold))
 
         result = cursor.fetchall()
 

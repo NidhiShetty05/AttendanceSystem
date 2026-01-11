@@ -445,13 +445,14 @@ else if (report === 'defaulter') {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    year: numericYear,
+    year: getNumericYear(year),  // <-- yahi important
     stream: stream,
     from_date: fromDate,
     to_date: toDate,
     threshold: 75
   })
 })
+
 .then(async res => {
   const text = await res.text();   // 👈 read raw response
 
