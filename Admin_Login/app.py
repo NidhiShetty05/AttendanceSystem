@@ -93,6 +93,64 @@ def delete_teacher():
     db.close()
     return jsonify({"message": "Teacher deleted successfully"})
 
+    # ---------- SUBJECT ASSIGNMENT ----------
+
+@app.route("/api/teachers")
+def get_teachers_api():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT teacher_id, name as teacher_name FROM teachers")
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return jsonify(data)
+
+@app.route("/api/subjects")
+def get_subjects():
+    stream = request.args.get("stream")
+    year = request.args.get("year")
+    semester = request.args.get("semester")
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    query = """
+        SELECT id, subject_name
+        FROM subjects
+        WHERE stream=%s AND year=%s AND semester=%s
+    """
+    cursor.execute(query, (stream, year, semester))
+    subjects = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return jsonify(subjects)
+
+@app.route("/api/assign-subject", methods=["POST"])
+def assign_subject():
+    data = request.json
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        INSERT INTO teacher_subject_mapping
+        (teacher_id, subject_id, stream, year, semester)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (
+        data["teacher_id"],
+        data["subject_id"],
+        data["stream"],
+        data["year"],
+        data["semester"]
+    ))
+
+    db.commit()
+    cursor.close()
+    db.close()
+    return jsonify({"message": "Subject assigned successfully"})
+
 # ---------- STUDENT MANAGEMENT ----------
 
 @app.route("/add_student", methods=["POST"])
