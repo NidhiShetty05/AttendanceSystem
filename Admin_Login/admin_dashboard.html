@@ -2,322 +2,262 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background-image: url('static/innerheadercommon.jpg');
-        background-repeat: no-repeat;
-        background-position: top center;
-        background-size: contain;
-        background-color: #f5f7f4;
-        padding-top: 120px;
-    }
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f5f7f4;
+    background-image: url("{{ url_for('static', filename='innerheadercommon.jpg') }}");
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: contain;
+}
 
-    .center-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        min-height: 80vh;
-    }
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 60px;
+}
 
-    .container {
-        width: 350px;
-        background: white;
-        padding: 25px 30px;
-        border-radius: 12px;
-        box-shadow: 0px 0px 12px rgba(0,0,0,0.15);
-        border: 2px solid #004a99;
-        text-align: left;
-        margin-bottom: 20px;
-    }
+.dashboard {
+    width: 420px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    padding: 30px;
+}
 
-    h2 {
-        text-align: center;
-        color: #004a99;
-        margin-bottom: 20px;
-        font-weight: bold;
-    }
+.section {
+    display: none;
+}
 
-    label {
-        font-size: 14px;
-        font-weight: bold;
-        display: block;
-        margin-top: 10px;
-        color: #003366;
-    }
+h2 {
+    text-align: center;
+    color: #004a99;
+    margin-bottom: 20px;
+}
 
-    input, select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #004a99;
-        border-radius: 6px;
-        font-size: 15px;
-    }
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #004a99;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-    input:focus, select:focus {
-        outline: none;
-        border-color: #002f66;
-        box-shadow: 0 0 5px rgba(0, 74, 153, 0.4);
-    }
+.btn:hover { background: #003366; }
 
-    .btn {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        margin-top: 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        color: white;
-        font-size: 15px;
-        font-weight: bold;
-        background: #004a99;
-    }
+.back { background: #666; }
 
-    .btn:hover {
-        background: #002f66;
-    }
+label {
+    margin-top: 10px;
+    display: block;
+    font-weight: bold;
+}
 
-    .back-btn {
-        background-color: #666;
-    }
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
 
-    .back-btn:hover {
-        background-color: #444;
-    }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-    /* TABLE VIEW */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        border-radius: 6px;
-        overflow: hidden;
-    }
+th {
+    background: #004a99;
+    color: white;
+    padding: 8px;
+}
 
-    th {
-        background: #004a99;
-        color: white;
-        padding: 10px;
-    }
-
-    td {
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid #aaa;
-    }
-
-    tr:nth-child(even) {
-        background: #f2f2f2;
-    }
-
-    /* Logo on top left */
-    .top-college-logo {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 9999;
-    }
-
-    .top-college-logo img {
-        height: 70px;
-    }
-
+td {
+    padding: 8px;
+    text-align: center;
+}
 </style>
 </head>
 
 <body>
 
-<div class="top-college-logo">
-    <img src="static/sieslogo.jpg" alt="College Logo">
+<div class="wrapper">
+<div class="dashboard">
+<img src="{{ url_for('static', filename='sieslogo.jpg') }}" alt="Logo">
+
+<!-- MAIN MENU -->
+<div id="mainMenu">
+    <h2>Welcome Admin</h2>
+    <button class="btn" onclick="showTeacherMenu()">Teacher Management</button>
+    <button class="btn" onclick="showStudentMenu()">Student Management</button>
 </div>
 
-<div class="center-wrapper">
+<!-- TEACHER MENU -->
+<div id="teacherMenu" class="section">
+    <h2>Teacher Management</h2>
+    <button class="btn" onclick="showAddTeacher()">Add Teacher</button>
+    <button class="btn" onclick="showViewTeacher()">View Teachers</button>
+    <button class="btn" onclick="showDeleteTeacher()">Delete Teacher</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-    <!-- MAIN MENU -->
-    <div class="container" id="mainMenu">
-        <h2>Welcome Admin</h2>
-        <button class="btn" onclick="showAddTeacher()">Add Teacher</button>
-        <button class="btn" onclick="showViewTeacher()">View Teachers</button>
-        <button class="btn" onclick="showDeleteTeacher()">Delete Teacher</button>
-    </div>
+<!-- STUDENT MENU -->
+<div id="studentMenu" class="section">
+    <h2>Student Management</h2>
+    <button class="btn" onclick="showAddStudent()">Add Student</button>
+    <button class="btn" onclick="showViewStudent()">View Students</button>
+    <button class="btn" onclick="showDeleteStudent()">Delete Student</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-    <!-- ADD TEACHER -->
-    <div class="container" id="addTeacher" style="display:none;">
-        <h2>Add Teacher</h2>
+<!-- ADD TEACHER -->
+<div id="addTeacher" class="section">
+    <h2>Add Teacher</h2>
+    <label>Name</label><input id="tname">
+    <label>Department</label>
+    <select id="tdept"><option value="">Select Department</option><option>CS</option><option>IT</option></select>
+    <label>Teacher ID</label><input id="tid">
+    <label>Password</label><input type="password" id="tpass">
+    <button class="btn" onclick="saveTeacher()">Save</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-        <label>Teacher Name</label>
-        <input type="text" id="tname" placeholder="Enter name">
+<!-- VIEW TEACHERS -->
+<div id="viewTeacher" class="section">
+    <h2>Teachers</h2>
+    <table>
+        <thead><tr><th>Name</th><th>Dept</th><th>ID</th></tr></thead>
+        <tbody id="teacherTable"></tbody>
+    </table>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-        <label>Department</label>
-        <select id="tdept">
-            <option value="">Select Department</option>
-            <option>CS</option>
-            <option>IT</option>
-        </select>
+<!-- DELETE TEACHER -->
+<div id="deleteTeacher" class="section">
+    <h2>Delete Teacher</h2>
+    <select id="deleteList"></select>
+    <button class="btn" onclick="deleteTeacherData()">Delete</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-        <label>Teacher ID</label>
-        <input type="text" id="tid" placeholder="Enter Teacher ID">
+<!-- ADD STUDENT -->
+<div id="addStudent" class="section">
+    <h2>Add Student</h2>
+    <label>Department</label>
+    <select id="sdept"><option value="">Select Department</option><option>CS</option><option>IT</option></select>
+    <label>Year</label>
+    <select id="syear"><option value="">Select Year</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <label>Roll No</label><input id="sroll">
+    <label>Password</label><input type="password" id="spass">
+    <button class="btn" onclick="saveStudent()">Save</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-        <label>Password</label>
-        <input type="password" id="tpass" placeholder="Enter password">
+<!-- VIEW STUDENTS -->
+<div id="viewStudent" class="section">
+    <h2>Students</h2>
+    <table>
+        <thead><tr><th>Dept</th><th>Year</th><th>Roll</th></tr></thead>
+        <tbody id="studentTable"></tbody>
+    </table>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-        <button class="btn" onclick="saveTeacher()">Save</button>
-        <button class="btn back-btn" onclick="goBack()">Back</button>
-    </div>
+<!-- DELETE STUDENT -->
+<div id="deleteStudent" class="section">
+    <h2>Delete Student</h2>
+    <select id="deleteStudentList"></select>
+    <button class="btn" onclick="deleteStudentData()">Delete</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
 
-    <!-- VIEW TEACHER -->
-    <div class="container" id="viewTeacher" style="display:none; width:500px;">
-        <h2>Teacher List</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Dept</th>
-                    <th>ID</th>
-                </tr>
-            </thead>
-            <tbody id="teacherTable"></tbody>
-        </table>
-        <button class="btn back-btn" onclick="goBack()">Back</button>
-    </div>
-
-    <!-- DELETE TEACHER -->
-    <div class="container" id="deleteTeacher" style="display:none;">
-        <h2>Delete Teacher</h2>
-
-        <label>Select Teacher</label>
-        <select id="deleteList"></select>
-
-        <button class="btn" onclick="deleteTeacherData()">Delete</button>
-        <button class="btn back-btn" onclick="goBack()">Back</button>
-    </div>
-
+</div>
 </div>
 
 <script>
-    let teachers = [];
+const $ = id => document.getElementById(id);
 
-    function hideAll() {
-        document.getElementById("mainMenu").style.display = "none";
-        document.getElementById("addTeacher").style.display = "none";
-        document.getElementById("viewTeacher").style.display = "none";
-        document.getElementById("deleteTeacher").style.display = "none";
-    }
-
-    function showAddTeacher() {
-        hideAll();
-        document.getElementById("addTeacher").style.display = "block";
-    }
-
-    function showViewTeacher() {
-        hideAll();
-        document.getElementById("viewTeacher").style.display = "block";
-        loadTable();
-    }
-
-    function showDeleteTeacher() {
-        hideAll();
-        document.getElementById("deleteTeacher").style.display = "block";
-        loadDeleteList();
-    }
-
-    function goBack() {
-        hideAll();
-        document.getElementById("mainMenu").style.display = "block";
-    }
-
-    // SAVE TEACHER
-    function saveTeacher() {
-    let name = document.getElementById("tname").value;
-    let department = document.getElementById("tdept").value;
-    let teacher_id = document.getElementById("tid").value;
-    let password = document.getElementById("tpass").value;
-
-    fetch("/add_teacher", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name: name,
-            department: department,
-            teacher_id: teacher_id,
-            password: password
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        
-        document.getElementById("tname").value = "";
-        document.getElementById("tdept").value = "";
-        document.getElementById("tid").value = "";
-        document.getElementById("tpass").value = "";
-    })
-    .catch(err => alert("Error: " + err));
+function hideAll(){
+    ["mainMenu","teacherMenu","studentMenu","addTeacher","viewTeacher","deleteTeacher","addStudent","viewStudent","deleteStudent"]
+    .forEach(id => $(id).style.display="none");
 }
 
+function goBack(){ hideAll(); $("mainMenu").style.display="block"; }
+function showTeacherMenu(){ hideAll(); $("teacherMenu").style.display="block"; }
+function showStudentMenu(){ hideAll(); $("studentMenu").style.display="block"; }
 
+function showAddTeacher(){ hideAll(); $("addTeacher").style.display="block"; }
+function showViewTeacher(){ hideAll(); $("viewTeacher").style.display="block"; loadTeachers(); }
+function showDeleteTeacher(){ hideAll(); $("deleteTeacher").style.display="block"; loadTeacherDelete(); }
 
-    // LOAD TABLE
-    function loadTable() {
-    fetch('/get_teachers')
-    .then(res => res.json())
-    .then(data => {
-        let table = document.getElementById("teacherTable");
-        table.innerHTML = "";
-        data.forEach(t => {
-            table.innerHTML += `
-                <tr>
-                    <td>${t.name}</td>
-                    <td>${t.department}</td>
-                    <td>${t.teacher_id}</td>
-                </tr>`;
-        });
-    });
+function showAddStudent(){ hideAll(); $("addStudent").style.display="block"; }
+function showViewStudent(){ hideAll(); $("viewStudent").style.display="block"; loadStudents(); }
+function showDeleteStudent(){ hideAll(); $("deleteStudent").style.display="block"; loadStudentDelete(); }
+
+function saveTeacher(){
+fetch("/add_teacher",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({name:tname.value,department:tdept.value,teacher_id:tid.value,password:tpass.value})})
+.then(r=>r.json()).then(d=>alert(d.message));
 }
 
-
-    // LOAD DELETE DROPDOWN
-    function loadDeleteList() {
-    fetch('/get_teachers')
-    .then(res => res.json())
-    .then(data => {
-        let list = document.getElementById("deleteList");
-        list.innerHTML = "";
-        data.forEach(t => {
-            list.innerHTML += `<option value="${t.teacher_id}">${t.name} (${t.teacher_id})</option>`;
-        });
-    });
+function loadTeachers(){
+fetch("/get_teachers").then(r=>r.json()).then(d=>{
+teacherTable.innerHTML="";
+d.forEach(t=>teacherTable.innerHTML+=`<tr><td>${t.name}</td><td>${t.department}</td><td>${t.teacher_id}</td></tr>`);
+});
 }
 
-
-    // DELETE TEACHER
-    function deleteTeacherData() {
-    let tid = document.getElementById("deleteList").value;
-
-    fetch('/delete_teacher', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teacher_id: tid })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-
-        // Refresh dropdown
-        loadDeleteList();
-
-        // Refresh table if currently viewing
-        loadTable();
-    })
-    .catch(err => alert("Error: " + err));
+function loadTeacherDelete(){
+fetch("/get_teachers").then(r=>r.json()).then(d=>{
+deleteList.innerHTML="";
+d.forEach(t=>deleteList.innerHTML+=`<option value="${t.teacher_id}">${t.name}</option>`);
+});
 }
 
+function deleteTeacherData(){
+fetch("/delete_teacher",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({teacher_id:deleteList.value})})
+.then(r=>r.json()).then(d=>alert(d.message));
+}
 
+function saveStudent(){
+fetch("/add_student",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({department:sdept.value,year:syear.value,roll_no:sroll.value,password:spass.value})})
+.then(r=>r.json()).then(d=>alert(d.message));
+}
+
+function loadStudents(){
+fetch("/get_students").then(r=>r.json()).then(d=>{
+studentTable.innerHTML="";
+d.forEach(s=>studentTable.innerHTML+=`<tr><td>${s.department}</td><td>${s.year}</td><td>${s.roll_no}</td></tr>`);
+});
+}
+
+function loadStudentDelete(){
+fetch("/get_students").then(r=>r.json()).then(d=>{
+deleteStudentList.innerHTML="";
+d.forEach(s=>deleteStudentList.innerHTML+=`<option value="${s.roll_no}">${s.roll_no}</option>`);
+});
+}
+
+function deleteStudentData(){
+fetch("/delete_student",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({roll_no:deleteStudentList.value})})
+.then(r=>r.json()).then(d=>alert(d.message));
+}
+
+hideAll(); $("mainMenu").style.display="block";
 </script>
 
 </body>

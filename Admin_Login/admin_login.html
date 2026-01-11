@@ -10,7 +10,7 @@
         font-family: Arial, sans-serif;
         margin: 0;
         background-color: #f5f7f4;
-        background-image: url('static/innerheadercommon.jpg');
+        background-image: url("{{ url_for('static', filename='innerheadercommon.jpg') }}");
         background-repeat: no-repeat;
         background-position: top center;
         background-size: contain;
@@ -62,7 +62,7 @@
 </head>
 <body>
     <div class="box">
-    <img src="static/sieslogo.jpg" class="logo" alt="Logo">
+    <img src="{{ url_for('static', filename='sieslogo.jpg') }}" alt="Logo">
 
     <h2>Admin Login</h2>
 
@@ -72,36 +72,30 @@
     <button class="btn" onclick="login()">LOGIN</button>
 </div>
 
-
-
 <script>
     function login() {
-    let user = document.getElementById("username").value;
-    let pass = document.getElementById("password").value;
+        let user = document.getElementById("username").value;
+        let pass = document.getElementById("password").value;
 
-    fetch("/login", {
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({username: user, password: pass})
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === "success"){
-            // Redirect to dashboard
-            window.location.href = "/dashboard";
-        } else {
-            alert("Invalid Username or Password");
-
-           
-            document.getElementById("username").value = "";
-            document.getElementById("password").value = "";
-        }
-    })
-    .catch(err => alert("Error: " + err));
-}
-
+        fetch("/admin/login", {
+            method: "POST",
+            headers:{
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({username: user, password: pass})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success"){
+                window.location.href = "/admin/dashboard";
+            } else {
+                alert("Invalid Username or Password");
+                document.getElementById("username").value = "";
+                document.getElementById("password").value = "";
+            }
+        })
+        .catch(err => alert("Error: " + err));
+    }
 </script>
 
 </body>
