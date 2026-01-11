@@ -93,7 +93,7 @@ def delete_teacher():
     db.close()
     return jsonify({"message": "Teacher deleted successfully"})
 
-    # ---------- SUBJECT ASSIGNMENT ----------
+# ---------- SUBJECT ASSIGNMENT ----------
 
 @app.route("/api/teachers")
 def get_teachers_api():
