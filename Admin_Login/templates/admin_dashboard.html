@@ -109,6 +109,7 @@ td {
     <button class="btn" onclick="showAddTeacher()">Add Teacher</button>
     <button class="btn" onclick="showViewTeacher()">View Teachers</button>
     <button class="btn" onclick="showDeleteTeacher()">Delete Teacher</button>
+    <button class="btn" onclick="showAssignSubject()">Assign Subject</button>
     <button class="btn back" onclick="goBack()">Back</button>
 </div>
 
@@ -150,6 +151,48 @@ td {
     <button class="btn" onclick="deleteTeacherData()">Delete</button>
     <button class="btn back" onclick="goBack()">Back</button>
 </div>
+<!-- ASSIGN SUBJECT -->
+<!-- ASSIGN SUBJECT -->
+<div id="assignSubject" class="section">
+    <h2>Assign Subject</h2>
+
+    <label>Teacher</label>
+    <select id="as_teacher"></select>
+
+    <label>Stream</label>
+    <select id="as_stream">
+        <option value="">Select</option>
+        <option value="IT">IT</option>
+        <option value="CS">CS</option>
+    </select>
+
+    <label>Year</label>
+    <select id="as_year">
+        <option value="">Select</option>
+        <option value="1">First Year</option>
+        <option value="2">Second Year</option>
+        <option value="3">Third Year</option>
+    </select>
+
+    <label>Semester</label>
+    <select id="as_semester">
+        <option value="">Select</option>
+        <option value="1">Sem 1</option>
+        <option value="2">Sem 2</option>
+        <option value="3">Sem 3</option>
+        <option value="4">Sem 4</option>
+        <option value="5">Sem 5</option>
+        <option value="6">Sem 6</option>
+    </select>
+
+    <label>Subject</label>
+    <select id="as_subject"></select>
+
+    <button class="btn" onclick="assignSubject()">Assign</button>
+    <button class="btn back" onclick="goBack()">Back</button>
+</div>
+
+
 
 <!-- ADD STUDENT -->
 <div id="addStudent" class="section">
@@ -191,7 +234,7 @@ td {
 const $ = id => document.getElementById(id);
 
 function hideAll(){
-    ["mainMenu","teacherMenu","studentMenu","addTeacher","viewTeacher","deleteTeacher","addStudent","viewStudent","deleteStudent"]
+    ["mainMenu","teacherMenu","studentMenu","addTeacher","viewTeacher","deleteTeacher","addStudent","viewStudent","deleteStudent", "assignSubject"]
     .forEach(id => $(id).style.display="none");
 }
 
@@ -231,6 +274,67 @@ function deleteTeacherData(){
 fetch("/delete_teacher",{method:"POST",headers:{"Content-Type":"application/json"},
 body:JSON.stringify({teacher_id:deleteList.value})})
 .then(r=>r.json()).then(d=>alert(d.message));
+}
+
+function showAssignSubject(){
+    hideAll();
+    $("assignSubject").style.display = "block";
+    loadAssignTeachers();
+}
+
+/* Load teachers */
+function loadAssignTeachers(){
+    fetch("/api/teachers")
+    .then(r => r.json())
+    .then(data => {
+        as_teacher.innerHTML = '<option value="">Select Teacher</option>';
+        data.forEach(t => {
+            as_teacher.innerHTML += `
+                <option value="${t.teacher_id}">
+                    ${t.teacher_name} (${t.teacher_id})
+                </option>`;
+        });
+    });
+}
+
+/* Load subjects */
+function loadAssignSubjects(){
+    if(!as_stream.value || !as_year.value || !as_semester.value) return;
+
+    fetch(`/api/subjects?stream=${as_stream.value}&year=${as_year.value}&semester=${as_semester.value}`)
+    .then(r => r.json())
+    .then(data => {
+        as_subject.innerHTML = '<option value="">Select Subject</option>';
+        data.forEach(s => {
+            as_subject.innerHTML += `<option value="${s.id}">${s.subject_name}</option>`;
+        });
+    });
+}
+
+as_stream.onchange = loadAssignSubjects;
+as_year.onchange = loadAssignSubjects;
+as_semester.onchange = loadAssignSubjects;
+
+/* Assign subject */
+function assignSubject(){
+    if(!as_teacher.value || !as_subject.value){
+        alert("Please select all fields");
+        return;
+    }
+
+    fetch("/api/assign-subject",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            teacher_id: as_teacher.value,
+            subject_id: as_subject.value,
+            stream: as_stream.value,
+            year: as_year.value,
+            semester: as_semester.value
+        })
+    })
+    .then(r=>r.json())
+    .then(d=>alert(d.message));
 }
 
 function saveStudent(){

@@ -140,6 +140,37 @@ def get_students_by_dept_year():
 
     return jsonify(students)
 
+@app.route("/api/teacher/subjects")
+def get_teacher_subjects():
+    if "teacher_id" not in session:
+        return jsonify([]), 401
+
+    teacher_id = session["teacher_id"]
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            s.id,
+            s.subject_name,
+            tsm.stream,
+            tsm.year,
+            tsm.semester
+        FROM teacher_subject_mapping tsm
+        JOIN subjects s ON s.id = tsm.subject_id
+        WHERE tsm.teacher_id = %s
+        ORDER BY tsm.stream, tsm.year, s.subject_name
+    """, (teacher_id,))
+
+    subjects = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(subjects)
+
+
 
 
 @app.route("/logout")

@@ -137,11 +137,9 @@ body{background-color:#f5f7f4;  background-image: url("{{ url_for('static', file
       <div>
         <label for="subject-select">Subject:</label>
         <select id="subject-select">
-          <option value="DBMS">DBMS</option>
-          <option value="OS">OS</option>
-          <option value="DSA">DSA</option>
-          <option value="Math">Math</option>
-        </select>
+  <option value="">Select Subject</option>
+</select>
+
       </div>
       <div>
         <label for="lecture-time">Lecture Date & Time:</label>
@@ -169,6 +167,24 @@ body{background-color:#f5f7f4;  background-image: url("{{ url_for('static', file
 <script>
 // student data
 let students = [];
+
+async function loadTeacherSubjects() {
+  const res = await fetch("/api/teacher/subjects");
+  const subjects = await res.json();
+
+  const subjectSelect = document.getElementById("subject-select");
+  subjectSelect.innerHTML = `<option value="">Select Subject</option>`;
+
+  subjects.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.subject_name;
+    opt.textContent = `${s.subject_name} (${s.stream} - Year ${s.year})`;
+    opt.dataset.stream = s.stream;
+    opt.dataset.year = s.year;
+    subjectSelect.appendChild(opt);
+  });
+}
+
 
 async function loadStudents() {
   const department = document.getElementById("stream-select").value;
@@ -266,11 +282,12 @@ function renderAttendance(){
 }
 
 
-    fetch("/save_attendance", {  // instead of http://127.0.0.1:5000/save_attendance
+    fetch("/save_attendance", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(payload)
 })
+
 
     .then(async res => {
       if (!res.ok) {
@@ -508,6 +525,8 @@ document.querySelectorAll("#subject-select, #lecture-time, #report-select")
 
 
 // Initial load
+// Initial load
+loadTeacherSubjects();   // 👈 load subjects FIRST
 renderAttendance();
 loadStudents();
 
