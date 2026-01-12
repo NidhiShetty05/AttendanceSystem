@@ -9,8 +9,8 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="140405",  # Change to your MySQL password
-        database="attendance_system"
+        password="root",  # Change to your MySQL password
+        database="teacher"
     )
 
 # ---------- ADMIN ROUTES ----------

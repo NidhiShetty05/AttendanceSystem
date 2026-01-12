@@ -24,7 +24,7 @@ def get_db_connection(autocommit=False):
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="123456",
+        password="root",
         database="teacher",
         autocommit=autocommit,
     )
@@ -62,11 +62,13 @@ def login():
 
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
+
     cur.execute(
-        "SELECT id, teacher_id, name, password_hash FROM teachers WHERE teacher_id = %s",
+        "SELECT id, teacher_id, name, password FROM teachers WHERE teacher_id = %s",
         (teacher_id,),
     )
     user = cur.fetchone()
+
     cur.close()
     conn.close()
 
@@ -74,13 +76,11 @@ def login():
         flash("Invalid Teacher ID or Password", "error")
         return redirect(url_for("index"))
 
-    # Simple password check (plain text). If you later use hashes,
-    # replace this with check_password_hash.
-    if user["password_hash"] != password:
+    # Plain-text password verification
+    if user["password"] != password:
         flash("Invalid Teacher ID or Password", "error")
         return redirect(url_for("index"))
 
-    # Successful login → store in session
     session["teacher_id"] = user["teacher_id"]
     session["teacher_name"] = user["name"]
 
@@ -119,7 +119,6 @@ def normalize_datetime(dt_str: str) -> str:
 
 @app.route("/save_attendance", methods=["POST", "OPTIONS"])
 def save_attendance():
-    # Handle preflight CORS
     if request.method == "OPTIONS":
         return "", 200
 
@@ -130,13 +129,12 @@ def save_attendance():
     year = data["year"]
     stream = data["stream"]
     lecture_date_time = normalize_datetime(data["lecture_date_time"])
-    attendance = data["attendance"]  # dict: { "1": "present", "2": "absent", ... }
+    attendance = data["attendance"]
 
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
-        # Insert / update lecture
         cur.execute(
             """
             INSERT INTO lectures (lecture_key, subject, year, stream, lecture_date_time)
@@ -150,33 +148,30 @@ def save_attendance():
             (lecture_key, subject, year, stream, lecture_date_time),
         )
 
-        # Clear existing attendance for this lecture
         cur.execute("DELETE FROM attendance WHERE lecture_key = %s", (lecture_key,))
 
-         # Insert fresh attendance records
         for student_id, status in attendance.items():
-         status = 'P' if status.lower() == 'present' else 'A'
-         cur.execute(
+          status = 'P' if status.lower() == 'present' else 'A'
+          cur.execute(
         """
-        INSERT INTO attendance (lecture_key, student_id, status, date)
-        VALUES (%s, %s, %s, DATE(%s))
+        INSERT INTO attendance (lecture_key, student_id, status)
+        VALUES (%s, %s, %s)
         """,
-        (lecture_key, int(student_id), status, lecture_date_time),
+        (lecture_key, int(student_id), status),
     )
+
 
         conn.commit()
         return jsonify({"message": "Attendance saved successfully!"})
 
     except Exception as e:
         conn.rollback()
-        return (
-            jsonify({"message": "Error saving attendance", "error": str(e)}),
-            500,
-        )
+        return jsonify({"message": "Error saving attendance", "error": str(e)}), 500
 
     finally:
         cur.close()
         conn.close()
+
 
 
 # ---------------- MAIN ---------------- #
